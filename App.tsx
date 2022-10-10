@@ -8,11 +8,15 @@ import {
   View,
 } from 'react-native';
 import BackgroundFetch from 'react-native-background-fetch';
+import notifee, { EventType } from '@notifee/react-native';
+
+import { onDiplayNotification } from './src/services/notifications';
 
 import { StorageData } from './src/utils/localStorage';
 
 const App = () => {
   const [events, setEvents] = useState<StorageData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const initBackgroundFetch = useCallback(async () => {
     const onEvent = async (taskId: string) => {
@@ -20,7 +24,10 @@ const App = () => {
         taskId,
         timestamp: new Date().toString(),
       };
-      setEvents(prevState => [...prevState, data]);
+      // setEvents(prevState => [...prevState, data]);
+      await saveTask(data);
+      await onDiplayNotification();
+      console.log(data);
     };
 
     const onTimeout = async (taskId: string) => {
@@ -36,9 +43,38 @@ const App = () => {
     console.log('[BackgroundFetch] configure status: ', status);
   }, []);
 
+  async function saveTask(data) {
+    setEvents(prevState => [...prevState, data]);
+  }
+
+  async function bootstrap() {
+    const initialNotification = await notifee.getInitialNotification();
+
+    if (initialNotification) {
+      console.log(
+        'Notification caused application to open',
+        initialNotification.notification,
+      );
+      console.log(
+        'Press action used to open the app',
+        initialNotification.pressAction,
+      );
+    }
+  }
+
+  useEffect(() => {
+    bootstrap()
+      .then(() => setLoading(false))
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     initBackgroundFetch();
   }, [initBackgroundFetch]);
+
+  if (loading) {
+    return null;
+  }
 
   return (
     <SafeAreaView>
@@ -65,6 +101,13 @@ const App = () => {
     </SafeAreaView>
   );
 };
+
+BackgroundFetch.scheduleTask({
+  taskId: 'com.my.periodicTask',
+  delay: 30000, // milliseconds
+  forceAlarmManager: true,
+  periodic: true,
+});
 
 const styles = StyleSheet.create({
   scrollView: {
