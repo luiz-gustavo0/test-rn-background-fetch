@@ -1,9 +1,13 @@
+import Realm from 'realm';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type StorageData = {
-  taskId: string;
-  timestamp: string;
+  _id: string;
+  name: string;
+  created_at: string;
 };
+
+export type Task = StorageData & Realm.Object;
 
 const KEY_STORAGE = '@myApp';
 

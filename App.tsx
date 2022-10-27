@@ -8,108 +8,155 @@ import {
   View,
 } from 'react-native';
 import BackgroundFetch from 'react-native-background-fetch';
-import notifee, { EventType } from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 
 import { onDiplayNotification } from './src/services/notifications';
 
-import { StorageData } from './src/utils/localStorage';
+import { Task } from './src/utils/localStorage';
+import { getRealm } from './src/databases/realm';
+import { ECG } from './src/components/ECG';
 
 const App = () => {
-  const [events, setEvents] = useState<StorageData[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [events, setEvents] = useState<Task[]>([]);
+  // // const [loading, setLoading] = useState(true);
 
-  const initBackgroundFetch = useCallback(async () => {
-    const onEvent = async (taskId: string) => {
-      const data = {
-        taskId,
-        timestamp: new Date().toString(),
-      };
-      // setEvents(prevState => [...prevState, data]);
-      await saveTask(data);
-      await onDiplayNotification();
-      console.log(data);
-    };
+  // const initBackgroundFetch = useCallback(async () => {
+  //   const onEvent = async (taskId: string) => {
+  //     const data = {
+  //       taskId,
+  //       timestamp: new Date().toString(),
+  //     };
+  //     // setEvents(prevState => [...prevState, data]);
+  //     await saveTask(data);
+  //     await fetchGihubData();
+  //     await onDiplayNotification();
+  //     console.log('================', new Date(), '==============');
+  //   };
 
-    const onTimeout = async (taskId: string) => {
-      BackgroundFetch.finish(taskId);
-    };
+  //   const onTimeout = async (taskId: string) => {
+  //     BackgroundFetch.finish(taskId);
+  //   };
 
-    let status = await BackgroundFetch.configure(
-      { minimumFetchInterval: 15, stopOnTerminate: false },
-      onEvent,
-      onTimeout,
-    );
+  //   let status = await BackgroundFetch.configure(
+  //     { minimumFetchInterval: 15, stopOnTerminate: false },
+  //     onEvent,
+  //     onTimeout,
+  //   );
 
-    console.log('[BackgroundFetch] configure status: ', status);
-  }, []);
+  //   console.log('[BackgroundFetch] configure status: ', status);
+  // }, []);
 
-  async function saveTask(data) {
-    setEvents(prevState => [...prevState, data]);
-  }
+  // async function saveTask(data) {
+  //   const realm = await getRealm();
+  //   try {
+  //     realm.write(() => {
+  //       const created = realm.create('Task', {
+  //         _id: Math.random().toString(36).slice(2),
+  //         name: data.taskId,
+  //         created_at: data.timestamp,
+  //       });
 
-  async function bootstrap() {
-    const initialNotification = await notifee.getInitialNotification();
+  //       console.log('Created', created);
+  //     });
+  //     realm.close();
+  //   } catch (error) {
+  //     console.log('Save Task', error);
+  //   }
+  //   // setEvents(prevState => [...prevState, data]);
+  // }
 
-    if (initialNotification) {
-      console.log(
-        'Notification caused application to open',
-        initialNotification.notification,
-      );
-      console.log(
-        'Press action used to open the app',
-        initialNotification.pressAction,
-      );
-    }
-  }
+  // async function fetchTasks() {
+  //   try {
+  //     const realm = await getRealm();
 
-  useEffect(() => {
-    bootstrap()
-      .then(() => setLoading(false))
-      .catch(console.error);
-  }, []);
+  //     const tasks = realm.objects<Task[]>('Task').toJSON();
 
-  useEffect(() => {
-    initBackgroundFetch();
-  }, [initBackgroundFetch]);
+  //     setEvents(tasks);
 
-  if (loading) {
-    return null;
-  }
+  //     realm.close();
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
+
+  // async function fetchGihubData() {
+  //   const response = await fetch('https://api.github.com/users/luiz-gustavo0');
+  //   const data = await response.json();
+
+  //   console.log('Github Data', JSON.stringify(data, null, 2));
+  // }
+
+  // useEffect(() => {
+  //   fetchTasks();
+  // }, []);
+
+  // useEffect(() => {
+  //   initBackgroundFetch();
+  // }, [initBackgroundFetch]);
+
+  const [data, setData] = useState({
+    amplitude: 0,
+    timeStamp: new Date(),
+  });
+
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     setData({
+  //       amplitude: Math.floor(Math.random() * 100),
+  //       timeStamp: new Date(),
+  //     });
+  //   }, 10);
+  // }, []);
 
   return (
-    <SafeAreaView>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={styles.scrollView}>
-        <View style={styles.body}>
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>BackgroundFetch Demo</Text>
-          </View>
-        </View>
-      </ScrollView>
-      <View style={styles.sectionContainer}>
-        <FlatList
-          data={events}
-          renderItem={({ item }) => (
-            <Text>
-              [{item.taskId}]: {item.timestamp}
-            </Text>
-          )}
-          keyExtractor={item => item.timestamp}
-        />
-      </View>
-    </SafeAreaView>
+    <ECG
+      height={100}
+      width={370}
+      amplitudeRange={{
+        top: 100,
+        bottom: 0,
+      }}
+      data={data}
+      timeWidth={10000}
+      scanBarWidth={1}
+    />
+
+    // <SafeAreaView>
+    //   <ScrollView
+    //     contentInsetAdjustmentBehavior="automatic"
+    //     style={styles.scrollView}>
+    //     <View style={styles.body}>
+    //       <View style={styles.sectionContainer}>
+    //         <Text style={styles.sectionTitle}>BackgroundFetch Demo</Text>
+    //       </View>
+    //     </View>
+    //   </ScrollView>
+    //   <View style={styles.sectionContainer}>
+    //     <FlatList
+    //       data={events}
+    //       renderItem={({ item }) => (
+    //         <Text>
+    //           [{item.name}]: {item.created_at.toString()}
+    //         </Text>
+    //       )}
+    //       keyExtractor={item => item._id}
+    //     />
+    //   </View>
+    //   </SafeAreaView>
   );
 };
 
-BackgroundFetch.scheduleTask({
-  taskId: 'com.my.periodicTask',
-  delay: 30000, // milliseconds
-  forceAlarmManager: true,
-  periodic: true,
-});
+// BackgroundFetch.scheduleTask({
+//   taskId: 'com.my.periodicTask',
+//   delay: 30000, // milliseconds
+//   forceAlarmManager: true,
+//   periodic: true,
+// });
 
 const styles = StyleSheet.create({
+  constiner: {
+    flex: 1,
+  },
   scrollView: {
     backgroundColor: '#f9f8f9',
   },
