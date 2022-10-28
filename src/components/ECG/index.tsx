@@ -1,88 +1,56 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Canvas from 'react-native-canvas';
+/* eslint-disable react-native/no-inline-styles */
+import React from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { LineChart, YAxis, XAxis, Grid } from 'react-native-svg-charts';
+import * as shape from 'd3-shape';
 
-const defaultProps = {
-  width: 370,
-  height: 100,
-  timeWidth: 3000, // in milliseconds
-  scanBarWidth: 20,
+const vitalSignsData = {
+  bpm: 68,
+  spO2: 98,
+  respirationRate: 16,
+  bodyTemperature: 36.6,
+  bloodPressure: [120, 80],
+  time: 1662992891972,
 };
 
-type ECGProps = {
-  width: number;
-  height: number;
-  timeWidth: number; // in milliseconds
-  scanBarWidth: number;
-  amplitudeRange: {
-    top: number;
-    bottom: number;
-  };
-  data: {
-    amplitude: number;
-    timeStamp: Date;
-  };
-};
+const { width } = Dimensions.get('window');
 
-export function ECG(elProps: ECGProps) {
-  const canvas = useRef<Canvas>();
-  const start = new Date().getTime();
-  let opx = 0;
-  let opy = 0;
-
-  const handleCanvas = () => {
-    if (canvas.current) {
-      const ctx = canvas.current.getContext('2d');
-      ctx.strokeStyle = '#00bd00';
-
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#00bd00';
-    }
-  };
-
-  const updateCanvas = (_, props: ECGProps) => {
-    const context = canvas.current?.getContext('2d');
-    const time = (props.data.timeStamp.getTime() - start) % props.timeWidth;
-    const px = (time * props.width) / props.timeWidth;
-    const amplitudeHeight =
-      props.amplitudeRange.top - props.amplitudeRange.bottom;
-    const py =
-      ((props.data.amplitude - props.amplitudeRange.bottom) * props.height) /
-      amplitudeHeight;
-    context?.clearRect(px, 0, props.scanBarWidth, props.height);
-    context?.beginPath();
-
-    if (px < opx) {
-      opx = 0;
-    }
-
-    context?.moveTo(opx, opy);
-    context?.lineTo(px, py);
-
-    opx = px;
-    opy = py;
-  };
-
-  useEffect(() => {
-    updateCanvas(canvas, elProps);
-  }, [elProps, updateCanvas]);
-
+export function ECG() {
+  const YValues = ['DI', 'aVR', 'V1', 'V4'];
+  const data = [50, 10, 40, 95, -4, -24, 85, 91, 35, 53, -53, 24, 50, -20, -80];
+  const XValues = [
+    50, 10, 40, 95, -4, -24, 85, 91, 35, 53, -53, 24, 50, -20, -80,
+  ];
+  const contentInset = { top: 20, bottom: 20 };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ECG Graph</Text>
-      <Canvas
-        ref={handleCanvas}
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{
-          backgroundColor: '#000',
-          width: defaultProps.width,
-          height: defaultProps.height,
-        }}
+      <Text style={styles.title}>Chart</Text>
+      <LineChart
+        style={{ height: 200 }}
+        data={data}
+        svg={{ stroke: 'rgb(134, 65, 244)' }}
+        contentInset={contentInset}
+        curve={shape.curveNatural}>
+        <Grid />
+      </LineChart>
+      <LineChart
+        style={{ height: 200 }}
+        data={data}
+        svg={{ stroke: 'rgb(134, 65, 244)' }}
+        contentInset={contentInset}
+        curve={shape.curveNatural}>
+        <Grid />
+      </LineChart>
+      <XAxis
+        style={{ marginHorizontal: -10 }}
+        data={data}
+        formatLabel={(value, index) => index}
+        contentInset={{ left: 10, right: 10 }}
+        svg={{ fontSize: 10, fill: 'black' }}
       />
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

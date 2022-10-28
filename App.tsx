@@ -94,32 +94,8 @@ const App = () => {
   //   initBackgroundFetch();
   // }, [initBackgroundFetch]);
 
-  const [data, setData] = useState({
-    amplitude: 0,
-    timeStamp: new Date(),
-  });
-
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     setData({
-  //       amplitude: Math.floor(Math.random() * 100),
-  //       timeStamp: new Date(),
-  //     });
-  //   }, 10);
-  // }, []);
-
   return (
-    <ECG
-      height={100}
-      width={370}
-      amplitudeRange={{
-        top: 100,
-        bottom: 0,
-      }}
-      data={data}
-      timeWidth={10000}
-      scanBarWidth={1}
-    />
+    <ECG />
 
     // <SafeAreaView>
     //   <ScrollView
